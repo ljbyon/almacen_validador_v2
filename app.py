@@ -31,6 +31,27 @@ st.markdown("""
   .stApp { background: #f7f8fc; color: #1e2230; }
   .block-container { padding-top: 2.2rem; max-width: 1080px; }
 
+
+  /* Login card */
+  .login-card {
+    background: #ffffff;
+    border: 1px solid #e2e6f0;
+    border-radius: 16px;
+    padding: 2.6rem 2.8rem 2rem;
+    width: 100%;
+    max-width: 420px;
+    margin: 8vh auto 0;
+    box-shadow: 0 4px 24px rgba(30,34,60,0.09);
+    text-align: center;
+  }
+  .login-card h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1e2230;
+    margin: 0.4rem 0 0.2rem;
+  }
+  .login-card p { color: #7b829a; font-size: 0.86rem; margin: 0 0 1.6rem; }
+
   /* Header */
   .header-banner {
     background: #ffffff;
@@ -178,6 +199,42 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# ─── Autenticación ───────────────────────────────────────────────────────────
+def check_credentials(username: str, password: str) -> bool:
+    try:
+        users = st.secrets["users"]
+        return users.get(username) == password
+    except Exception:
+        return False
+
+if "authenticated" not in st.session_state:
+    st.session_state["authenticated"] = False
+if "auth_user" not in st.session_state:
+    st.session_state["auth_user"] = ""
+
+if not st.session_state["authenticated"]:
+    st.markdown("""
+    <div class="login-card">
+      <div style="font-size:2rem;margin-bottom:0.4rem">✉️</div>
+      <h2>DISMAC · Acceso</h2>
+      <p>Ingrese sus credenciales para continuar</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    with st.form("login_form"):
+        username = st.text_input("Usuario")
+        password = st.text_input("Contraseña", type="password")
+        submitted = st.form_submit_button("Ingresar", use_container_width=True)
+
+    if submitted:
+        if check_credentials(username, password):
+            st.session_state["authenticated"] = True
+            st.session_state["auth_user"] = username
+            st.rerun()
+        else:
+            st.error("Usuario o contraseña incorrectos.")
+    st.stop()
+
 # ─── Encabezado ───────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="header-banner">
@@ -188,6 +245,12 @@ st.markdown("""
   </div>
 </div>
 """, unsafe_allow_html=True)
+
+# ─── Logout ──────────────────────────────────────────────────────────────────
+col_logout = st.columns([8, 1])[1]
+if col_logout.button("Cerrar sesión"):
+    st.session_state["authenticated"] = False
+    st.rerun()
 
 # ─── Credenciales SMTP ────────────────────────────────────────────────────────
 try:
