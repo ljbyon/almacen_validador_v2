@@ -296,6 +296,8 @@ with tab3:
             rows_valid = df_loaded[df_loaded[recipient_col].str.strip() != ""]
 
             context = ssl.create_default_context()
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE
 
             def add_log(msg, kind="inf"):
                 tag = {"ok":"log-ok","err":"log-err","inf":"log-inf"}.get(kind,"")
