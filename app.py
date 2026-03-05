@@ -310,7 +310,6 @@ with tab2:
                 rendered = template_body.format(**{k: v for k, v in row.items()})
                 st.markdown(
                     f"""<div class="email-preview-wrap">
-                          <div class="email-preview-header">Vista previa del correo</div>
                           <div style="padding:1.2rem 1.4rem">{rendered}</div>
                         </div>""",
                     unsafe_allow_html=True
