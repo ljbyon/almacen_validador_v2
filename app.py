@@ -291,41 +291,12 @@ with tab2:
     subject_tpl = st.text_input("Asunto del correo", value=DEFAULT_SUBJECT)
     st.session_state["subject_tpl"] = subject_tpl
 
-    left_col, right_col = st.columns([1, 1], gap="large")
-
-    with left_col:
-        template_body = st.text_area(
-            "Cuerpo HTML de la plantilla",
-            value=st.session_state.get("template", DEFAULT_TEMPLATE_HTML),
-            height=480
-        )
-        st.session_state["template"] = template_body
-
-    with right_col:
-        df_loaded = st.session_state.get("df")
-        if df_loaded is not None and len(df_loaded) > 0:
-            preview_idx = st.number_input("Vista previa — fila Nº (desde 0)", 0, len(df_loaded) - 1, 0)
-            row = df_loaded.iloc[preview_idx].to_dict()
-            try:
-                rendered = template_body.format(**{k: v for k, v in row.items()})
-                st.markdown(
-                    f"""<div class="email-preview-wrap">
-                          <div style="padding:1.2rem 1.4rem">{rendered}</div>
-                        </div>""",
-                    unsafe_allow_html=True
-                )
-            except KeyError as e:
-                st.error(f"Marcador desconocido {e} en la plantilla.")
-        else:
-            st.markdown(
-                """<div class="email-preview-wrap">
-                     <div class="email-preview-header">Vista previa del correo</div>
-                     <div style="padding:1.2rem 1.4rem; color:#9098b8; font-size:0.88rem; font-style:italic;">
-                       Cargue un archivo en la primera pestaña para previsualizar un correo.
-                     </div>
-                   </div>""",
-                unsafe_allow_html=True
-            )
+    template_body = st.text_area(
+        "Cuerpo HTML de la plantilla",
+        value=st.session_state.get("template", DEFAULT_TEMPLATE_HTML),
+        height=480
+    )
+    st.session_state["template"] = template_body
 
 # ══════════════════════════════════════════════════════════════════════════════
 # PESTAÑA 3 – Enviar
