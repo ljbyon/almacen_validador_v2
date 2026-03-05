@@ -267,8 +267,7 @@ except Exception:
 TEMPLATE_MARKETPLACE = """\
 <div style="font-family: Arial, sans-serif; font-size: 14px; color: #1e2230; line-height: 1.7; max-width: 600px;">
 
-  <p style="margin: 0 0 16px;">Estimados,<br>
-  <strong>Pedido MARKETPLACE</strong></p>
+  <p style="margin: 0 0 16px;"><strong>Confirmacion de Recepcion Fisica de Pedido</strong></p>
 
   <p style="margin: 0 0 4px; font-weight: 700; color: #2d3a8c; border-bottom: 1px solid #dde2f5; padding-bottom: 4px;">
     Datos del Cliente
