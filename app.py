@@ -247,7 +247,7 @@ REQUIRED_COLS = [
 DEFAULT_SUBJECT = "Pedido Marketplace – {OC}"
 
 # ─── Pestañas ─────────────────────────────────────────────────────────────────
-tab1, tab2, tab3 = st.tabs(["📂  Cargar Archivo", "✏️  Plantilla de Correo", "🚀  Enviar"])
+tab1, tab2 = st.tabs(["📂  Cargar Archivo", "🚀  Enviar"])
 
 # ══════════════════════════════════════════════════════════════════════════════
 # PESTAÑA 1 – Cargar archivo
@@ -283,28 +283,12 @@ with tab1:
         st.info("Cargue un archivo Excel para comenzar.")
 
 # ══════════════════════════════════════════════════════════════════════════════
-# PESTAÑA 2 – Plantilla de correo
+# PESTAÑA 2 – Enviar
 # ══════════════════════════════════════════════════════════════════════════════
 with tab2:
-    st.caption("Use {NOMBRE_COLUMNA} como marcadores — serán reemplazados con los valores de cada fila.")
-
-    subject_tpl = st.text_input("Asunto del correo", value=DEFAULT_SUBJECT)
-    st.session_state["subject_tpl"] = subject_tpl
-
-    template_body = st.text_area(
-        "Cuerpo HTML de la plantilla",
-        value=st.session_state.get("template", DEFAULT_TEMPLATE_HTML),
-        height=480
-    )
-    st.session_state["template"] = template_body
-
-# ══════════════════════════════════════════════════════════════════════════════
-# PESTAÑA 3 – Enviar
-# ══════════════════════════════════════════════════════════════════════════════
-with tab3:
     df_loaded   = st.session_state.get("df")
-    template    = st.session_state.get("template", DEFAULT_TEMPLATE_HTML)
-    subject_tpl = st.session_state.get("subject_tpl", DEFAULT_SUBJECT)
+    template    = DEFAULT_TEMPLATE_HTML
+    subject_tpl = DEFAULT_SUBJECT
 
     if df_loaded is None:
         st.info("Cargue un archivo Excel en la primera pestaña antes de enviar.")
