@@ -450,6 +450,10 @@ with tab2:
                         cc_addr  = row["CC"].strip() if has_cc else ""
                         row_dict = row.to_dict()
 
+                        # Split multiple addresses separated by semicolons
+                        to_list = [a.strip() for a in to_addr.split(";") if a.strip()]
+                        cc_list = [a.strip() for a in cc_addr.split(";") if a.strip()]
+
                         try:
                             subject = subject_tpl.format(**{k: v for k, v in row_dict.items()})
                         except KeyError:
@@ -466,18 +470,18 @@ with tab2:
 
                         msg = MIMEMultipart("alternative")
                         msg["From"]    = EMAIL_USER
-                        msg["To"]      = to_addr
+                        msg["To"]      = ", ".join(to_list)
                         msg["Subject"] = subject
-                        if cc_addr:
-                            msg["Cc"] = cc_addr
+                        if cc_list:
+                            msg["Cc"] = ", ".join(cc_list)
                         msg.attach(MIMEText(body_html, "html", "utf-8"))
 
-                        recipients = [to_addr] + ([cc_addr] if cc_addr else [])
+                        recipients = to_list + cc_list
 
                         try:
                             server.sendmail(EMAIL_USER, recipients, msg.as_string())
-                            cc_info = f"  CC: {cc_addr}" if cc_addr else ""
-                            add_log(f"[OK]   {label} {idx+1}/{batch_total}  →  {to_addr}{cc_info}  |  {subject[:48]}", "ok")
+                            cc_info = f"  CC: {', '.join(cc_list)}" if cc_list else ""
+                            add_log(f"[OK]   {label} {idx+1}/{batch_total}  →  {', '.join(to_list)}{cc_info}  |  {subject[:48]}", "ok")
                             sent_ok += 1
                         except Exception as e:
                             add_log(f"[ERR]  {label} {idx+1}/{batch_total}  →  {to_addr}  |  {e}", "err")
