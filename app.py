@@ -315,10 +315,9 @@ with tab3:
         has_cc_col      = "CC"    in df_loaded.columns
         rows_with_email = int((df_loaded["EMAIL"].str.strip() != "").sum()) if has_email_col else 0
 
-        m1, m2, m3 = st.columns(3)
+        m1, m2 = st.columns(2)
         m1.metric("Total de filas", len(df_loaded))
         m2.metric("Filas con destinatario", rows_with_email if has_email_col else "—")
-        m3.metric("Servidor SMTP", EMAIL_HOST)
 
         if not has_email_col:
             st.warning("La columna `EMAIL` no fue encontrada en el archivo.")
