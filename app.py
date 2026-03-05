@@ -216,7 +216,7 @@ if not st.session_state["authenticated"]:
     st.markdown("""
     <div class="login-card">
       <div style="font-size:2rem;margin-bottom:0.4rem">✉️</div>
-      <h2>DISMAC · Acceso</h2>
+      <h2>DISMAC ALMACEN · Acceso</h2>
       <p>Ingrese sus credenciales para continuar</p>
     </div>
     """, unsafe_allow_html=True)
@@ -240,8 +240,8 @@ st.markdown("""
 <div class="header-banner">
   <div class="header-icon">✉️</div>
   <div>
-    <h1>DISMAC · Envío Masivo de Correos</h1>
-    <p>Cargue un archivo Excel → previsualice → personalice la plantilla → envíe</p>
+    <h1>DISMAC ALMACEN · Envío Masivo de Correos Longtail y Marketplace</h1>
+    <p>Cargar un archivo Excel → Previsualizar → Enviar</p>
   </div>
 </div>
 """, unsafe_allow_html=True)
