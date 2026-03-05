@@ -200,8 +200,8 @@ except Exception:
     secrets_ok = False
     st.error("Credenciales SMTP no configuradas. Verifique el archivo `.streamlit/secrets.toml`.")
 
-# ─── Plantilla HTML por defecto ───────────────────────────────────────────────
-DEFAULT_TEMPLATE_HTML = """\
+# ─── Plantilla MARKETPLACE ───────────────────────────────────────────────────
+TEMPLATE_MARKETPLACE = """\
 <div style="font-family: Arial, sans-serif; font-size: 14px; color: #1e2230; line-height: 1.7; max-width: 600px;">
 
   <p style="margin: 0 0 16px;">Estimados,<br>
@@ -239,12 +239,57 @@ DEFAULT_TEMPLATE_HTML = """\
 
 </div>"""
 
-REQUIRED_COLS = [
+# ─── Plantilla LONGTAIL ───────────────────────────────────────────────────────
+TEMPLATE_LONGTAIL = """\
+<div style="font-family: Arial, sans-serif; font-size: 14px; color: #1e2230; line-height: 1.7; max-width: 600px;">
+
+  <p style="margin: 0 0 16px;">Estimados,<br>
+  <strong>Pedido LONGTAIL</strong></p>
+
+  <p style="margin: 0 0 4px; font-weight: 700; color: #2d3a8c; border-bottom: 1px solid #dde2f5; padding-bottom: 4px;">
+    Detalle del Pedido
+  </p>
+  <ul style="margin: 8px 0 16px; padding-left: 20px;">
+    <li><strong>N° Pedido:</strong> {PEDIDO}</li>
+    <li><strong>N° Orden de Compra:</strong> {OC}</li>
+    <li><strong>N° Control:</strong> {NUMERO CONTROL}</li>
+    <li><strong>Regional:</strong> {REGIONAL}</li>
+  </ul>
+
+  <p style="margin: 0 0 4px; font-weight: 700; color: #2d3a8c; border-bottom: 1px solid #dde2f5; padding-bottom: 4px;">
+    Detalle del Producto
+  </p>
+  <ul style="margin: 8px 0 16px; padding-left: 20px;">
+    <li><strong>Código:</strong> {CÓDIGO DEL PRODUCTO}</li>
+    <li><strong>Descripción:</strong> {DESCRIPCIÓN}</li>
+    <li><strong>Cantidad:</strong> {CANT}</li>
+  </ul>
+
+  <p style="margin: 0 0 4px; font-weight: 700; color: #2d3a8c; border-bottom: 1px solid #dde2f5; padding-bottom: 4px;">
+    Observación
+  </p>
+  <p style="margin: 8px 0 0; padding-left: 4px;">{OBSERVACIÓN}</p>
+
+</div>"""
+
+REQUIRED_MARKETPLACE = [
     "PEDIDO", "OC", "NOMBRE CLIENTE", "CÓDIGO DEL PRODUCTO",
     "DESCRIPCIÓN", "CANT", "OBSERVACIÓN", "REGIONAL", "EMAIL", "CC"
 ]
+REQUIRED_LONGTAIL = [
+    "PEDIDO", "OC", "NUMERO CONTROL", "CÓDIGO DEL PRODUCTO",
+    "DESCRIPCIÓN", "CANT", "OBSERVACIÓN", "REGIONAL", "EMAIL", "CC"
+]
 
-DEFAULT_SUBJECT = "Pedido Marketplace – {OC}"
+SUBJECT_MARKETPLACE = "Pedido Marketplace – {OC}"
+SUBJECT_LONGTAIL    = "Pedido Longtail – {OC}"
+
+def find_sheet(xl, keyword):
+    """Return (sheet_name, DataFrame) for the sheet whose name contains keyword (case-insensitive), or (None, None)."""
+    for name in xl.sheet_names:
+        if keyword.upper() in name.upper():
+            return name, xl.parse(name, dtype=str).fillna("")
+    return None, None
 
 # ─── Pestañas ─────────────────────────────────────────────────────────────────
 tab1, tab2 = st.tabs(["📂  Cargar Archivo", "🚀  Enviar"])
@@ -260,22 +305,49 @@ with tab1:
 
     if uploaded:
         try:
-            df = pd.read_excel(uploaded, sheet_name=0, dtype=str).fillna("")
-            st.session_state["df"] = df
+            xl = pd.ExcelFile(uploaded)
+            sheet_longtail_name,    df_lt = find_sheet(xl, "LONGTAIL")
+            sheet_marketplace_name, df_mp = find_sheet(xl, "MARKETPLACE")
 
-            missing = [c for c in REQUIRED_COLS if c not in df.columns]
-
-            col_a, col_b, col_c = st.columns(3)
-            col_a.metric("Filas", len(df))
-            col_b.metric("Columnas", len(df.columns))
-            col_c.metric("Columnas faltantes", len(missing))
-
-            if missing:
-                st.warning(f"⚠️ Columnas no encontradas: {', '.join(missing)}")
+            if df_lt is None and df_mp is None:
+                st.error("No se encontraron hojas con 'LONGTAIL' o 'MARKETPLACE' en su nombre.")
             else:
-                st.success("✅ Todas las columnas requeridas fueron detectadas.")
+                st.session_state["df_longtail"]    = df_lt
+                st.session_state["df_marketplace"] = df_mp
 
-            st.dataframe(df, use_container_width=True, height=400)
+                # ── LONGTAIL preview ──
+                if df_lt is not None:
+                    st.markdown(f"#### 📄 Hoja Longtail — *{sheet_longtail_name}*")
+                    missing_lt = [c for c in REQUIRED_LONGTAIL if c not in df_lt.columns]
+                    c1, c2, c3 = st.columns(3)
+                    c1.metric("Filas", len(df_lt))
+                    c2.metric("Columnas", len(df_lt.columns))
+                    c3.metric("Columnas faltantes", len(missing_lt))
+                    if missing_lt:
+                        st.warning(f"⚠️ Columnas faltantes en Longtail: {', '.join(missing_lt)}")
+                    else:
+                        st.success("✅ Todas las columnas requeridas de Longtail detectadas.")
+                    st.dataframe(df_lt, use_container_width=True, height=260)
+                else:
+                    st.warning("No se encontró una hoja con 'LONGTAIL' en su nombre.")
+
+                st.divider()
+
+                # ── MARKETPLACE preview ──
+                if df_mp is not None:
+                    st.markdown(f"#### 📄 Hoja Marketplace — *{sheet_marketplace_name}*")
+                    missing_mp = [c for c in REQUIRED_MARKETPLACE if c not in df_mp.columns]
+                    c1, c2, c3 = st.columns(3)
+                    c1.metric("Filas", len(df_mp))
+                    c2.metric("Columnas", len(df_mp.columns))
+                    c3.metric("Columnas faltantes", len(missing_mp))
+                    if missing_mp:
+                        st.warning(f"⚠️ Columnas faltantes en Marketplace: {', '.join(missing_mp)}")
+                    else:
+                        st.success("✅ Todas las columnas requeridas de Marketplace detectadas.")
+                    st.dataframe(df_mp, use_container_width=True, height=260)
+                else:
+                    st.warning("No se encontró una hoja con 'MARKETPLACE' en su nombre.")
 
         except Exception as e:
             st.error(f"No se pudo leer el archivo: {e}")
@@ -286,28 +358,47 @@ with tab1:
 # PESTAÑA 2 – Enviar
 # ══════════════════════════════════════════════════════════════════════════════
 with tab2:
-    df_loaded   = st.session_state.get("df")
-    template    = DEFAULT_TEMPLATE_HTML
-    subject_tpl = DEFAULT_SUBJECT
+    df_lt = st.session_state.get("df_longtail")
+    df_mp = st.session_state.get("df_marketplace")
 
-    if df_loaded is None:
+    if df_lt is None and df_mp is None:
         st.info("Cargue un archivo Excel en la primera pestaña antes de enviar.")
     elif not secrets_ok:
         st.error("Las credenciales SMTP no están configuradas.")
     else:
-        has_email_col   = "EMAIL" in df_loaded.columns
-        has_cc_col      = "CC"    in df_loaded.columns
-        rows_with_email = int((df_loaded["EMAIL"].str.strip() != "").sum()) if has_email_col else 0
+        # Build list of sheet batches to process
+        batches = []
+        if df_lt is not None and "EMAIL" in df_lt.columns:
+            batches.append({
+                "label":    "Longtail",
+                "df":       df_lt,
+                "template": TEMPLATE_LONGTAIL,
+                "subject":  SUBJECT_LONGTAIL,
+            })
+        if df_mp is not None and "EMAIL" in df_mp.columns:
+            batches.append({
+                "label":    "Marketplace",
+                "df":       df_mp,
+                "template": TEMPLATE_MARKETPLACE,
+                "subject":  SUBJECT_MARKETPLACE,
+            })
 
-        m1, m2 = st.columns(2)
-        m1.metric("Total de filas", len(df_loaded))
-        m2.metric("Filas con destinatario", rows_with_email if has_email_col else "—")
+        total_rows = sum(
+            int((b["df"]["EMAIL"].str.strip() != "").sum()) for b in batches
+        )
 
-        if not has_email_col:
-            st.warning("La columna `EMAIL` no fue encontrada en el archivo.")
+        # Summary metrics
+        cols = st.columns(len(batches) + 1)
+        cols[0].metric("Total destinatarios", total_rows)
+        for i, b in enumerate(batches):
+            n = int((b["df"]["EMAIL"].str.strip() != "").sum())
+            cols[i + 1].metric(f"Hoja {b['label']}", n)
+
+        if not batches:
+            st.warning("Ninguna hoja tiene la columna `EMAIL`.")
 
         st.divider()
-        send_btn = st.button("▶  Enviar correos", disabled=(not has_email_col))
+        send_btn = st.button("▶  Enviar correos", disabled=(not batches))
 
         log_placeholder  = st.empty()
         prog_placeholder = st.empty()
@@ -316,7 +407,12 @@ with tab2:
             logs      = []
             sent_ok   = 0
             sent_fail = 0
-            rows_valid = df_loaded[df_loaded["EMAIL"].str.strip() != ""]
+
+            # Count total valid rows across both sheets for progress bar
+            all_rows_count = sum(
+                int((b["df"]["EMAIL"].str.strip() != "").sum()) for b in batches
+            )
+            processed = 0
 
             context = ssl.create_default_context()
             context.check_hostname = False
@@ -339,47 +435,57 @@ with tab2:
                 server.login(EMAIL_USER, EMAIL_PASSWORD)
                 add_log(f"[OK]   Autenticado como {EMAIL_USER}", "ok")
 
-                total = len(rows_valid)
-                for idx, (_, row) in enumerate(rows_valid.iterrows()):
-                    to_addr  = row["EMAIL"].strip()
-                    cc_addr  = row["CC"].strip() if has_cc_col else ""
-                    row_dict = row.to_dict()
+                for batch in batches:
+                    label       = batch["label"]
+                    template    = batch["template"]
+                    subject_tpl = batch["subject"]
+                    has_cc      = "CC" in batch["df"].columns
+                    rows_valid  = batch["df"][batch["df"]["EMAIL"].str.strip() != ""]
+                    batch_total = len(rows_valid)
 
-                    # Asunto
-                    try:
-                        subject = subject_tpl.format(**{k: v for k, v in row_dict.items()})
-                    except KeyError:
-                        subject = f"Pedido Marketplace – {row_dict.get('OC', '')}"
+                    add_log(f"[INFO] ── Procesando hoja {label} ({batch_total} filas) ──")
 
-                    # Cuerpo HTML
-                    try:
-                        body_html = template.format(**{k: v for k, v in row_dict.items()})
-                    except KeyError as e:
-                        add_log(f"[WARN] Fila {idx+1}: marcador faltante {e}, se omite.", "err")
-                        sent_fail += 1
-                        continue
+                    for idx, (_, row) in enumerate(rows_valid.iterrows()):
+                        to_addr  = row["EMAIL"].strip()
+                        cc_addr  = row["CC"].strip() if has_cc else ""
+                        row_dict = row.to_dict()
 
-                    msg = MIMEMultipart("alternative")
-                    msg["From"]    = EMAIL_USER
-                    msg["To"]      = to_addr
-                    msg["Subject"] = subject
-                    if cc_addr:
-                        msg["Cc"] = cc_addr
-                    msg.attach(MIMEText(body_html, "html", "utf-8"))
+                        try:
+                            subject = subject_tpl.format(**{k: v for k, v in row_dict.items()})
+                        except KeyError:
+                            subject = f"Pedido {label} – {row_dict.get('OC', '')}"
 
-                    recipients = [to_addr] + ([cc_addr] if cc_addr else [])
+                        try:
+                            body_html = template.format(**{k: v for k, v in row_dict.items()})
+                        except KeyError as e:
+                            add_log(f"[WARN] {label} fila {idx+1}: marcador faltante {e}, se omite.", "err")
+                            sent_fail += 1
+                            processed += 1
+                            prog_placeholder.progress(processed / all_rows_count)
+                            continue
 
-                    try:
-                        server.sendmail(EMAIL_USER, recipients, msg.as_string())
-                        cc_info = f"  CC: {cc_addr}" if cc_addr else ""
-                        add_log(f"[OK]   {idx+1}/{total}  →  {to_addr}{cc_info}  |  {subject[:50]}", "ok")
-                        sent_ok += 1
-                    except Exception as e:
-                        add_log(f"[ERR]  {idx+1}/{total}  →  {to_addr}  |  {e}", "err")
-                        sent_fail += 1
+                        msg = MIMEMultipart("alternative")
+                        msg["From"]    = EMAIL_USER
+                        msg["To"]      = to_addr
+                        msg["Subject"] = subject
+                        if cc_addr:
+                            msg["Cc"] = cc_addr
+                        msg.attach(MIMEText(body_html, "html", "utf-8"))
 
-                    prog_placeholder.progress((idx + 1) / total)
-                    time.sleep(1)
+                        recipients = [to_addr] + ([cc_addr] if cc_addr else [])
+
+                        try:
+                            server.sendmail(EMAIL_USER, recipients, msg.as_string())
+                            cc_info = f"  CC: {cc_addr}" if cc_addr else ""
+                            add_log(f"[OK]   {label} {idx+1}/{batch_total}  →  {to_addr}{cc_info}  |  {subject[:48]}", "ok")
+                            sent_ok += 1
+                        except Exception as e:
+                            add_log(f"[ERR]  {label} {idx+1}/{batch_total}  →  {to_addr}  |  {e}", "err")
+                            sent_fail += 1
+
+                        processed += 1
+                        prog_placeholder.progress(processed / all_rows_count)
+                        time.sleep(1)
 
                 server.quit()
                 add_log(f"[INFO] Proceso finalizado. Enviados: {sent_ok}  |  Fallidos: {sent_fail}")
