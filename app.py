@@ -343,8 +343,8 @@ REQUIRED_LONGTAIL = [
     "DESCRIPCIÓN", "CANT", "OBSERVACIÓN", "REGIONAL", "EMAIL", "CC"
 ]
 
-SUBJECT_MARKETPLACE = "Pedido Marketplace – {OC}"
-SUBJECT_LONGTAIL    = "Pedido Longtail – {OC}"
+SUBJECT_MARKETPLACE = "Recepcion Marketplace – {OC}"
+SUBJECT_LONGTAIL    = "Recepcion Longtail – {OC}"
 
 def find_sheet(xl, keyword):
     """Return (sheet_name, DataFrame) for the sheet whose name contains keyword (case-insensitive), or (None, None)."""
