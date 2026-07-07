@@ -491,9 +491,11 @@ with tab2:
             add_log(f"[INFO] Conectando a {EMAIL_HOST}:{EMAIL_PORT} …")
 
             try:
-                server = smtplib.SMTP(EMAIL_HOST, EMAIL_PORT, timeout=15)
+                server = smtplib.SMTP(EMAIL_HOST, EMAIL_PORT, timeout=60)
+                server.set_debuglevel(1)
                 server.ehlo()
                 server.starttls(context=context)
+                server.ehlo()
                 server.login(EMAIL_USER, EMAIL_PASSWORD)
                 add_log(f"[OK]   Autenticado como {EMAIL_USER}", "ok")
 
