@@ -1,9 +1,6 @@
 import streamlit as st
 import pandas as pd
-import smtplib
-import ssl
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import requests
 import time
 
 # ─── Configuración de página ──────────────────────────────────────────────────
@@ -252,16 +249,16 @@ if col_logout.button("Cerrar sesión"):
     st.session_state["authenticated"] = False
     st.rerun()
 
-# ─── Credenciales SMTP ────────────────────────────────────────────────────────
+# ─── Credenciales API de correo ────────────────────────────────────────────────────────
 try:
-    EMAIL_HOST     = st.secrets["EMAIL_HOST"]
-    EMAIL_PORT     = int(st.secrets["EMAIL_PORT"])
-    EMAIL_USER     = st.secrets["EMAIL_USER"]
-    EMAIL_PASSWORD = st.secrets["EMAIL_PASSWORD"]
+    MAIL_API_URL    = st.secrets["MAIL_API_URL"]
+    MAIL_API_TOKEN  = st.secrets["MAIL_API_TOKEN"]
+    MAIL_FROM_EMAIL = st.secrets.get("MAIL_FROM_EMAIL", "testing@dismac.com.bo")
+    MAIL_FROM_NAME  = st.secrets.get("MAIL_FROM_NAME", "Dismac Almacén")
     secrets_ok = True
 except Exception:
     secrets_ok = False
-    st.error("Credenciales SMTP no configuradas. Verifique el archivo `.streamlit/secrets.toml`.")
+    st.error("Credenciales del API de correo no configuradas. Verifique el archivo `.streamlit/secrets.toml`.")
 
 # ─── Plantilla MARKETPLACE ───────────────────────────────────────────────────
 TEMPLATE_MARKETPLACE = """\
@@ -353,6 +350,22 @@ def find_sheet(xl, keyword):
             return name, xl.parse(name, dtype=str).fillna("")
     return None, None
 
+def _post_mail(to_field, subject, html_body):
+    """Send one request to the Dismac Magento mail endpoint. Raises on non-2xx."""
+    payload = {
+        "from": {"email": MAIL_FROM_EMAIL, "name": MAIL_FROM_NAME},
+        "to": to_field,
+        "subject": subject,
+        "body": html_body,
+    }
+    headers = {
+        "Authorization": f"Bearer {MAIL_API_TOKEN}",
+        "Content-Type": "application/json",
+    }
+    resp = requests.post(MAIL_API_URL, json=payload, headers=headers, timeout=20)
+    resp.raise_for_status()
+    return resp
+
 # ─── Pestañas ─────────────────────────────────────────────────────────────────
 tab1, tab2 = st.tabs(["📂  Cargar Archivo", "🚀  Enviar"])
 
@@ -426,7 +439,7 @@ with tab2:
     if df_lt is None and df_mp is None:
         st.info("Cargue un archivo Excel en la primera pestaña antes de enviar.")
     elif not secrets_ok:
-        st.error("Las credenciales SMTP no están configuradas.")
+        st.error("Las credenciales no están configuradas.")
     else:
         # Build list of sheet batches to process
         batches = []
@@ -470,15 +483,11 @@ with tab2:
             sent_ok   = 0
             sent_fail = 0
 
-            # Count total valid rows across both sheets for progress bar
             all_rows_count = sum(
                 int((b["df"]["EMAIL"].str.strip() != "").sum()) for b in batches
             )
             processed = 0
-
-            context = ssl.create_default_context()
-            context.check_hostname = False
-            context.verify_mode    = ssl.CERT_NONE
+            abort_all = False
 
             def add_log(msg, kind="inf"):
                 tag = {"ok": "log-ok", "err": "log-err", "inf": "log-inf"}.get(kind, "")
@@ -488,18 +497,14 @@ with tab2:
                     unsafe_allow_html=True
                 )
 
-            add_log(f"[INFO] Conectando a {EMAIL_HOST}:{EMAIL_PORT} …")
+            add_log(f"[INFO] Enviando vía API: {MAIL_API_URL}")
+            add_log(f"[INFO] Remitente: {MAIL_FROM_NAME} <{MAIL_FROM_EMAIL}>")
 
             try:
-                server = smtplib.SMTP(EMAIL_HOST, EMAIL_PORT, timeout=60)
-                server.set_debuglevel(1)
-                server.ehlo()
-                server.starttls(context=context)
-                server.ehlo()
-                server.login(EMAIL_USER, EMAIL_PASSWORD)
-                add_log(f"[OK]   Autenticado como {EMAIL_USER}", "ok")
-
                 for batch in batches:
+                    if abort_all:
+                        break
+
                     label       = batch["label"]
                     template    = batch["template"]
                     subject_tpl = batch["subject"]
@@ -510,13 +515,30 @@ with tab2:
                     add_log(f"[INFO] ── Procesando hoja {label} ({batch_total} filas) ──")
 
                     for idx, (_, row) in enumerate(rows_valid.iterrows()):
+                        if abort_all:
+                            break
+
                         to_addr  = row["EMAIL"].strip()
                         cc_addr  = row["CC"].strip() if has_cc else ""
                         row_dict = row.to_dict()
 
-                        # Split multiple addresses separated by semicolons
+                        # Sheet uses ';' as separator; API wants comma-separated
                         to_list = [a.strip() for a in to_addr.split(";") if a.strip()]
                         cc_list = [a.strip() for a in cc_addr.split(";") if a.strip()]
+
+                        # Merge TO + CC into a single recipient list, deduped
+                        seen = set()
+                        recipients = [a for a in (to_list + cc_list)
+                                      if a and not (a in seen or seen.add(a))]
+
+                        if not recipients:
+                            add_log(f"[WARN] {label} fila {idx+1}: sin destinatarios, se omite.", "err")
+                            sent_fail += 1
+                            processed += 1
+                            prog_placeholder.progress(processed / all_rows_count)
+                            continue
+
+                        to_field = ",".join(recipients)  # no spaces
 
                         try:
                             subject = subject_tpl.format(**{k: v for k, v in row_dict.items()})
@@ -532,21 +554,27 @@ with tab2:
                             prog_placeholder.progress(processed / all_rows_count)
                             continue
 
-                        msg = MIMEMultipart("alternative")
-                        msg["From"]    = EMAIL_USER
-                        msg["To"]      = ", ".join(to_list)
-                        msg["Subject"] = subject
-                        if cc_list:
-                            msg["Cc"] = ", ".join(cc_list)
-                        msg.attach(MIMEText(body_html, "html", "utf-8"))
-
-                        recipients = to_list + cc_list
-
                         try:
-                            server.sendmail(EMAIL_USER, recipients, msg.as_string())
+                            _post_mail(to_field, subject, body_html)
                             cc_info = f"  CC: {', '.join(cc_list)}" if cc_list else ""
                             add_log(f"[OK]   {label} {idx+1}/{batch_total}  →  {', '.join(to_list)}{cc_info}  |  {subject[:48]}", "ok")
                             sent_ok += 1
+
+                        except requests.HTTPError as e:
+                            status = e.response.status_code if e.response is not None else "?"
+                            detail = ""
+                            try:
+                                detail = e.response.text[:200]
+                            except Exception:
+                                pass
+                            add_log(f"[ERR]  {label} {idx+1}/{batch_total}  →  {to_addr}  |  HTTP {status}  {detail}", "err")
+                            sent_fail += 1
+
+                            # Auth failure would repeat for every row — stop now
+                            if status in (401, 403):
+                                add_log("[ERR]  Token inválido o sin permisos. Proceso abortado.", "err")
+                                abort_all = True
+
                         except Exception as e:
                             add_log(f"[ERR]  {label} {idx+1}/{batch_total}  →  {to_addr}  |  {e}", "err")
                             sent_fail += 1
@@ -555,17 +583,16 @@ with tab2:
                         prog_placeholder.progress(processed / all_rows_count)
                         time.sleep(1)
 
-                server.quit()
                 add_log(f"[INFO] Proceso finalizado. Enviados: {sent_ok}  |  Fallidos: {sent_fail}")
 
-                if sent_fail == 0:
+                if abort_all:
+                    st.error("Proceso abortado por error de autenticación. Verifique `MAIL_API_TOKEN`.")
+                elif sent_fail == 0:
                     st.success(f"✅ Se enviaron {sent_ok} correos exitosamente.")
                 else:
                     st.warning(f"Enviados: {sent_ok} — Fallidos: {sent_fail}. Revise el registro.")
 
-            except smtplib.SMTPAuthenticationError:
-                add_log("[ERR]  Autenticación fallida. Verifique las credenciales.", "err")
-                st.error("Error de autenticación SMTP.")
             except Exception as e:
-                add_log(f"[ERR]  Error de conexión: {e}", "err")
-                st.error(f"No se pudo conectar: {e}")
+                add_log(f"[ERR]  Error inesperado: {e}", "err")
+                st.error(f"Error inesperado: {e}")
+
