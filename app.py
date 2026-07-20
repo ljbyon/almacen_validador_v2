@@ -253,8 +253,8 @@ if col_logout.button("Cerrar sesión"):
 try:
     MAIL_API_URL    = st.secrets["MAIL_API_URL"]
     MAIL_API_TOKEN  = st.secrets["MAIL_API_TOKEN"]
-    MAIL_FROM_EMAIL = st.secrets.get("MAIL_FROM_EMAIL", "testing@dismac.com.bo")
-    MAIL_FROM_NAME  = st.secrets.get("MAIL_FROM_NAME", "Dismac Almacén")
+    MAIL_FROM_EMAIL = st.secrets["MAIL_FROM_EMAIL"]
+    MAIL_FROM_NAME  = st.secrets["MAIL_FROM_NAME"]
     secrets_ok = True
 except Exception:
     secrets_ok = False
