@@ -598,8 +598,8 @@ with tab2:
                         row_dict = row.to_dict()
 
                         # Sheet uses ';' as separator; API wants comma-separated
-                        to_list = [a.strip() for a in to_addr.split(";") if a.strip()]
-                        cc_list = [a.strip() for a in cc_addr.split(";") if a.strip()]
+                        to_list = [a.strip() for a in to_addr.split(",") if a.strip()]
+                        cc_list = [a.strip() for a in cc_addr.split(",") if a.strip()]
 
                         # Merge TO + CC into a single recipient list, deduped
                         seen = set()
