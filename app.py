@@ -632,7 +632,7 @@ with tab2:
                         try:
                             _post_mail(to_field, subject, body_html)
                             cc_info = f"  CC: {' , '.join(cc_list)}" if cc_list else ""
-                            add_log(f"[OK]   {label} {idx+1}/{batch_total}  →  {', '.join(to_list)}{cc_info}  |  {subject[:48]}", "ok")
+                            add_log(f"[OK]   {label} {idx+1}/{batch_total}  →  {' , '.join(to_list)}{cc_info}  |  {subject[:48]}", "ok")
                             sent_ok += 1
 
                         except requests.HTTPError as e:
