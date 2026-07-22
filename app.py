@@ -428,10 +428,23 @@ def _post_mail(to_field, subject, html_body):
         "subject": subject,
         "body": html_body,
     }
+    # headers = {
+    #     "Authorization": f"Bearer {MAIL_API_TOKEN}",
+    #     "Content-Type": "application/json",
+    # }
+
     headers = {
-        "Authorization": f"Bearer {MAIL_API_TOKEN}",
+
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+
         "Content-Type": "application/json",
+
+        "Accept": "application/json",
+
+        # "Authorization": f"Bearer {MAIL_API_TOKEN}".
+
     }
+ 
 
     
     st.write(payload)
