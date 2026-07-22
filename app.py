@@ -261,73 +261,143 @@ except Exception:
     st.error("Credenciales del API de correo no configuradas. Verifique el archivo `.streamlit/secrets.toml`.")
 
 # ─── Plantilla MARKETPLACE ───────────────────────────────────────────────────
+# TEMPLATE_MARKETPLACE = """\
+# <div style="font-family: Arial, sans-serif; font-size: 14px; color: #1e2230; line-height: 1.7; max-width: 600px;">
+
+#   <p style="margin: 0 0 16px;"><strong>Confirmacion de Recepcion Fisica de Pedido Marketplace</strong></p>
+
+#   <p style="margin: 0 0 4px; font-weight: 700; color: #2d3a8c; border-bottom: 1px solid #dde2f5; padding-bottom: 4px;">
+#     Datos del Cliente
+#   </p>
+#   <ul style="margin: 8px 0 16px; padding-left: 20px;">
+#     <li><strong>Nombre:</strong> {NOMBRE CLIENTE}</li>
+#   </ul>
+
+#   <p style="margin: 0 0 4px; font-weight: 700; color: #2d3a8c; border-bottom: 1px solid #dde2f5; padding-bottom: 4px;">
+#     Detalle del Pedido
+#   </p>
+#   <ul style="margin: 8px 0 16px; padding-left: 20px;">
+#     <li><strong>N° Orden de Compra:</strong> {OC}</li>
+#     <li><strong>Proveedor:</strong> {PEDIDO}</li>
+#     <li><strong>Regional:</strong> {REGIONAL}</li>
+#   </ul>
+
+#   <p style="margin: 0 0 4px; font-weight: 700; color: #2d3a8c; border-bottom: 1px solid #dde2f5; padding-bottom: 4px;">
+#     Detalle del Producto
+#   </p>
+#   <ul style="margin: 8px 0 16px; padding-left: 20px;">
+#     <li><strong>Código:</strong> {CÓDIGO DEL PRODUCTO}</li>
+#     <li><strong>Descripción:</strong> {DESCRIPCIÓN}</li>
+#     <li><strong>Cantidad:</strong> {CANT}</li>
+#   </ul>
+
+#   <p style="margin: 0 0 4px; font-weight: 700; color: #2d3a8c; border-bottom: 1px solid #dde2f5; padding-bottom: 4px;">
+#     Observación
+#   </p>
+#   <p style="margin: 8px 0 0; padding-left: 4px;">{OBSERVACIÓN}</p>
+
+# </div>"""
+
+# # ─── Plantilla LONGTAIL ───────────────────────────────────────────────────────
+# TEMPLATE_LONGTAIL = """\
+# <div style="font-family: Arial, sans-serif; font-size: 14px; color: #1e2230; line-height: 1.7; max-width: 600px;">
+
+#   <p style="margin: 0 0 16px;"><strong>Confirmacion de Recepcion Fisica de Pedido Longtail</strong></p>
+
+
+#   <p style="margin: 0 0 4px; font-weight: 700; color: #2d3a8c; border-bottom: 1px solid #dde2f5; padding-bottom: 4px;">
+#     Detalle del Pedido
+#   </p>
+#   <ul style="margin: 8px 0 16px; padding-left: 20px;">
+#     <li><strong>N° Pedido:</strong> {PEDIDO}</li>
+#     <li><strong>N° Orden de Compra:</strong> {OC}</li>
+#     <li><strong>N° Control:</strong> {NUMERO CONTROL}</li>
+#     <li><strong>Regional:</strong> {REGIONAL}</li>
+#   </ul>
+
+#   <p style="margin: 0 0 4px; font-weight: 700; color: #2d3a8c; border-bottom: 1px solid #dde2f5; padding-bottom: 4px;">
+#     Detalle del Producto
+#   </p>
+#   <ul style="margin: 8px 0 16px; padding-left: 20px;">
+#     <li><strong>Código:</strong> {CÓDIGO DEL PRODUCTO}</li>
+#     <li><strong>Descripción:</strong> {DESCRIPCIÓN}</li>
+#     <li><strong>Cantidad:</strong> {CANT}</li>
+#   </ul>
+
+#   <p style="margin: 0 0 4px; font-weight: 700; color: #2d3a8c; border-bottom: 1px solid #dde2f5; padding-bottom: 4px;">
+#     Observación
+#   </p>
+#   <p style="margin: 8px 0 0; padding-left: 4px;">{OBSERVACIÓN}</p>
+
+# </div>"""
+
 TEMPLATE_MARKETPLACE = """\
-<div style="font-family: Arial, sans-serif; font-size: 14px; color: #1e2230; line-height: 1.7; max-width: 600px;">
+<div style='font-family: Arial, sans-serif; font-size: 14px; color: #1e2230; line-height: 1.7; max-width: 600px;'>
 
-  <p style="margin: 0 0 16px;"><strong>Confirmacion de Recepcion Fisica de Pedido Marketplace</strong></p>
+  <p style='margin: 0 0 16px;'><strong>Confirmacion de Recepcion Fisica de Pedido Marketplace</strong></p>
 
-  <p style="margin: 0 0 4px; font-weight: 700; color: #2d3a8c; border-bottom: 1px solid #dde2f5; padding-bottom: 4px;">
+  <p style='margin: 0 0 4px; font-weight: 700; color: #2d3a8c; border-bottom: 1px solid #dde2f5; padding-bottom: 4px;'>
     Datos del Cliente
   </p>
-  <ul style="margin: 8px 0 16px; padding-left: 20px;">
+  <ul style='margin: 8px 0 16px; padding-left: 20px;'>
     <li><strong>Nombre:</strong> {NOMBRE CLIENTE}</li>
   </ul>
 
-  <p style="margin: 0 0 4px; font-weight: 700; color: #2d3a8c; border-bottom: 1px solid #dde2f5; padding-bottom: 4px;">
+  <p style='margin: 0 0 4px; font-weight: 700; color: #2d3a8c; border-bottom: 1px solid #dde2f5; padding-bottom: 4px;'>
     Detalle del Pedido
   </p>
-  <ul style="margin: 8px 0 16px; padding-left: 20px;">
+  <ul style='margin: 8px 0 16px; padding-left: 20px;'>
     <li><strong>N° Orden de Compra:</strong> {OC}</li>
     <li><strong>Proveedor:</strong> {PEDIDO}</li>
     <li><strong>Regional:</strong> {REGIONAL}</li>
   </ul>
 
-  <p style="margin: 0 0 4px; font-weight: 700; color: #2d3a8c; border-bottom: 1px solid #dde2f5; padding-bottom: 4px;">
+  <p style='margin: 0 0 4px; font-weight: 700; color: #2d3a8c; border-bottom: 1px solid #dde2f5; padding-bottom: 4px;'>
     Detalle del Producto
   </p>
-  <ul style="margin: 8px 0 16px; padding-left: 20px;">
+  <ul style='margin: 8px 0 16px; padding-left: 20px;'>
     <li><strong>Código:</strong> {CÓDIGO DEL PRODUCTO}</li>
     <li><strong>Descripción:</strong> {DESCRIPCIÓN}</li>
     <li><strong>Cantidad:</strong> {CANT}</li>
   </ul>
 
-  <p style="margin: 0 0 4px; font-weight: 700; color: #2d3a8c; border-bottom: 1px solid #dde2f5; padding-bottom: 4px;">
+  <p style='margin: 0 0 4px; font-weight: 700; color: #2d3a8c; border-bottom: 1px solid #dde2f5; padding-bottom: 4px;'>
     Observación
   </p>
-  <p style="margin: 8px 0 0; padding-left: 4px;">{OBSERVACIÓN}</p>
+  <p style='margin: 8px 0 0; padding-left: 4px;'>{OBSERVACIÓN}</p>
 
 </div>"""
 
 # ─── Plantilla LONGTAIL ───────────────────────────────────────────────────────
 TEMPLATE_LONGTAIL = """\
-<div style="font-family: Arial, sans-serif; font-size: 14px; color: #1e2230; line-height: 1.7; max-width: 600px;">
+<div style='font-family: Arial, sans-serif; font-size: 14px; color: #1e2230; line-height: 1.7; max-width: 600px;'>
 
-  <p style="margin: 0 0 16px;"><strong>Confirmacion de Recepcion Fisica de Pedido Longtail</strong></p>
+  <p style='margin: 0 0 16px;'><strong>Confirmacion de Recepcion Fisica de Pedido Longtail</strong></p>
 
 
-  <p style="margin: 0 0 4px; font-weight: 700; color: #2d3a8c; border-bottom: 1px solid #dde2f5; padding-bottom: 4px;">
+  <p style='margin: 0 0 4px; font-weight: 700; color: #2d3a8c; border-bottom: 1px solid #dde2f5; padding-bottom: 4px;'>
     Detalle del Pedido
   </p>
-  <ul style="margin: 8px 0 16px; padding-left: 20px;">
+  <ul style='margin: 8px 0 16px; padding-left: 20px;'>
     <li><strong>N° Pedido:</strong> {PEDIDO}</li>
     <li><strong>N° Orden de Compra:</strong> {OC}</li>
     <li><strong>N° Control:</strong> {NUMERO CONTROL}</li>
     <li><strong>Regional:</strong> {REGIONAL}</li>
   </ul>
 
-  <p style="margin: 0 0 4px; font-weight: 700; color: #2d3a8c; border-bottom: 1px solid #dde2f5; padding-bottom: 4px;">
+  <p style='margin: 0 0 4px; font-weight: 700; color: #2d3a8c; border-bottom: 1px solid #dde2f5; padding-bottom: 4px;'>
     Detalle del Producto
   </p>
-  <ul style="margin: 8px 0 16px; padding-left: 20px;">
+  <ul style='margin: 8px 0 16px; padding-left: 20px;'>
     <li><strong>Código:</strong> {CÓDIGO DEL PRODUCTO}</li>
     <li><strong>Descripción:</strong> {DESCRIPCIÓN}</li>
     <li><strong>Cantidad:</strong> {CANT}</li>
   </ul>
 
-  <p style="margin: 0 0 4px; font-weight: 700; color: #2d3a8c; border-bottom: 1px solid #dde2f5; padding-bottom: 4px;">
+  <p style='margin: 0 0 4px; font-weight: 700; color: #2d3a8c; border-bottom: 1px solid #dde2f5; padding-bottom: 4px;'>
     Observación
   </p>
-  <p style="margin: 8px 0 0; padding-left: 4px;">{OBSERVACIÓN}</p>
+  <p style='margin: 8px 0 0; padding-left: 4px;'>{OBSERVACIÓN}</p>
 
 </div>"""
 
