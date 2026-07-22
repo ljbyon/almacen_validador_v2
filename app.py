@@ -362,7 +362,12 @@ def _post_mail(to_field, subject, html_body):
         "Authorization": f"Bearer {MAIL_API_TOKEN}",
         "Content-Type": "application/json",
     }
+
+    
+    st.write(payload)
     resp = requests.post(MAIL_API_URL, json=payload, headers=headers, timeout=20)
+
+
     resp.raise_for_status()
     return resp
 
