@@ -420,29 +420,55 @@ def find_sheet(xl, keyword):
             return name, xl.parse(name, dtype=str).fillna("")
     return None, None
 
-def _post_mail(to_field, subject, html_body):
+# def _post_mail(to_field, subject, html_body):
+#     """Send one request to the Dismac Magento mail endpoint. Raises on non-2xx."""
+#     payload = {
+#         "from": {"email": MAIL_FROM_EMAIL, "name": MAIL_FROM_NAME},
+#         "to": to_field,
+#         "subject": subject,
+#         "body": html_body,
+#     }
+#     # headers = {
+#     #     "Authorization": f"Bearer {MAIL_API_TOKEN}",
+#     #     "Content-Type": "application/json",
+#     # }
+
+#     headers = {
+
+#         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+
+#         "Content-Type": "application/json",
+
+#         "Accept": "application/json",
+
+#         # "Authorization": f"Bearer {MAIL_API_TOKEN}".
+
+#     }
+
+#MAIL_REPLY_TO = "ehhuallata@dismac.com.bo"
+MAIL_REPLY_TO = MAIL_FROM_EMAIL
+
+
+def _post_mail(to_field, subject, html_body, cc="", bcc="", reply_to=MAIL_REPLY_TO):
     """Send one request to the Dismac Magento mail endpoint. Raises on non-2xx."""
     payload = {
         "from": {"email": MAIL_FROM_EMAIL, "name": MAIL_FROM_NAME},
         "to": to_field,
+        "cc": cc,
+        "bcc": bcc,
+        "reply_to": reply_to,
         "subject": subject,
         "body": html_body,
     }
-    # headers = {
-    #     "Authorization": f"Bearer {MAIL_API_TOKEN}",
-    #     "Content-Type": "application/json",
-    # }
 
     headers = {
-
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        ),
         "Content-Type": "application/json",
-
         "Accept": "application/json",
-
-        # "Authorization": f"Bearer {MAIL_API_TOKEN}".
-
+        "Authorization": f"Bearer {MAIL_API_TOKEN}",
     }
  
 
